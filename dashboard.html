@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Libriflow Dashboard</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Libriflow Dashboard</h1>
+    <button id="darkModeToggle" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+  </header>
+
+  <div id="welcomeMsg" class="welcome-message">
+    Welcome, Admin 👋
+    <div class="dashboard-cards">
+      <div class="card">
+        <h3>Total Books</h3>
+        <p id="bookCount">5</p>
+      </div>
+      <div class="card">
+        <h3>Total Staff</h3>
+        <p id="staffCount">3</p>
+      </div>
+    </div>
+  </div>
+
+  <nav>
+    <button onclick="showSection('books')">Books</button>
+    <button onclick="showSection('staff')">Staff</button>
+    <button onclick="showSection('addBook')">Add Book</button>
+    <button onclick="showSection('removeBook')">Remove Book</button>
+    <button onclick="showSection('addStaff')">Add Staff</button>
+    <button onclick="showSection('removeStaff')">Remove Staff</button>
+  </nav>
+
+  <main>
+    <section id="books" class="active">
+      <h2>Books Available</h2>
+      <input type="text" id="bookSearch" placeholder="Search books..." onkeyup="searchBooks()" />
+      <div id="bookList">
+        <ul id="bookItems">
+          <li>BK001 - Programming in C</li>
+          <li>BK002 - Data Structures</li>
+          <li>BK003 - DBMS</li>
+          <li>BK004 - Operating Systems</li>
+          <li>BK005 - Computer Networks</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="staff">
+      <h2>Staff Details</h2>
+      <input type="text" id="staffSearch" placeholder="Search staff..." onkeyup="searchStaff()" />
+      <div id="staffList">
+        <ul id="staffItems">
+          <li>STF001 - Ramesh - 9876543210</li>
+          <li>STF002 - Priya - 9999999999</li>
+          <li>STF003 - Anil - 9871234567</li>
+        </ul>
+      </div>
+    </section>
+
+    <section id="addBook">
+      <h2>Add Book</h2>
+      <form onsubmit="return handleAddBook(event)">
+        <input type="text" id="bookId" placeholder="Book ID" required />
+        <input type="text" id="bookCategory" placeholder="Category" required />
+        <input type="text" id="bookName" placeholder="Name" required />
+        <button type="submit">Add Book</button>
+      </form>
+    </section>
+
+    <section id="removeBook">
+      <h2>Remove Book</h2>
+      <form onsubmit="return handleRemoveBook(event)">
+        <input type="text" id="removeBookId" placeholder="Book ID to remove" required />
+        <button type="submit">Remove Book</button>
+      </form>
+    </section>
+
+    <section id="addStaff">
+      <h2>Add Staff</h2>
+      <form onsubmit="return handleAddStaff(event)">
+        <input type="text" id="staffId" placeholder="Staff ID" required />
+        <input type="text" id="staffName" placeholder="Name" required />
+        <input type="text" id="staffContact" placeholder="Contact" required />
+        <button type="submit">Add Staff</button>
+      </form>
+    </section>
+
+    <section id="removeStaff">
+      <h2>Remove Staff</h2>
+      <form onsubmit="return handleRemoveStaff(event)">
+        <input type="text" id="removeStaffId" placeholder="Staff ID to remove" required />
+        <button type="submit">Remove Staff</button>
+      </form>
+    </section>
+  </main>
+
+  <div id="popup" class="popup hidden">Message here</div>
+
+  <script>
+    function showSection(id) {
+      const sections = document.querySelectorAll('main section');
+      sections.forEach(sec => sec.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function searchBooks() {
+      const input = document.getElementById("bookSearch").value.toLowerCase();
+      const items = document.querySelectorAll("#bookItems li");
+      items.forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(input) ? "list-item" : "none";
+      });
+    }
+
+    function searchStaff() {
+      const input = document.getElementById("staffSearch").value.toLowerCase();
+      const items = document.querySelectorAll("#staffItems li");
+      items.forEach(item => {
+        item.style.display = item.textContent.toLowerCase().includes(input) ? "list-item" : "none";
+      });
+    }
+
+    function toggleDarkMode() {
+      const body = document.body;
+      body.classList.toggle("dark-mode");
+      const isDark = body.classList.contains("dark-mode");
+      localStorage.setItem("darkMode", isDark);
+      document.getElementById("darkModeToggle").innerText = isDark ? "☀️ Light Mode" : "🌙 Dark Mode";
+    }
+
+    function updateCounts() {
+      document.getElementById("bookCount").innerText = document.querySelectorAll("#bookItems li").length;
+      document.getElementById("staffCount").innerText = document.querySelectorAll("#staffItems li").length;
+    }
+
+    function showPopup(message, type = "success") {
+      const popup = document.getElementById("popup");
+      popup.textContent = message;
+      popup.className = `popup show ${type}`;
+      setTimeout(() => {
+        popup.classList.add("hidden");
+        popup.classList.remove("show");
+      }, 3000);
+    }
+
+    function handleAddBook(event) {
+      event.preventDefault();
+      const id = document.getElementById("bookId").value.trim();
+      const category = document.getElementById("bookCategory").value.trim();
+      const name = document.getElementById("bookName").value.trim();
+      if (!id || !category || !name) {
+        showPopup("Please fill in all book fields.", "error");
+        return false;
+      }
+      const li = document.createElement("li");
+      li.textContent = `${id} - ${name}`;
+      document.getElementById("bookItems").appendChild(li);
+      event.target.reset();
+      showPopup("Book added successfully ✅");
+      updateCounts();
+      return true;
+    }
+
+    function handleRemoveBook(event) {
+      event.preventDefault();
+      const idToRemove = document.getElementById("removeBookId").value.trim().toLowerCase();
+      const bookList = document.querySelectorAll("#bookItems li");
+      let found = false;
+      bookList.forEach(li => {
+        if (li.textContent.toLowerCase().startsWith(idToRemove)) {
+          li.remove();
+          found = true;
+        }
+      });
+      showPopup(found ? "Book removed ✅" : "Book ID not found ❌", found ? "success" : "error");
+      event.target.reset();
+      updateCounts();
+      return true;
+    }
+
+    function handleAddStaff(event) {
+      event.preventDefault();
+      const id = document.getElementById("staffId").value.trim();
+      const name = document.getElementById("staffName").value.trim();
+      const contact = document.getElementById("staffContact").value.trim();
+      if (!id || !name || !contact) {
+        showPopup("All staff fields are required.", "error");
+        return false;
+      }
+      if (!/^\d{10}$/.test(contact)) {
+        showPopup("Contact must be 10 digits.", "error");
+        return false;
+      }
+      const li = document.createElement("li");
+      li.textContent = `${id} - ${name} - ${contact}`;
+      document.getElementById("staffItems").appendChild(li);
+      event.target.reset();
+      showPopup("Staff added successfully ✅");
+      updateCounts();
+      return true;
+    }
+
+    function handleRemoveStaff(event) {
+      event.preventDefault();
+      const idToRemove = document.getElementById("removeStaffId").value.trim().toLowerCase();
+      const staffList = document.querySelectorAll("#staffItems li");
+      let found = false;
+      staffList.forEach(li => {
+        if (li.textContent.toLowerCase().startsWith(idToRemove)) {
+          li.remove();
+          found = true;
+        }
+      });
+      showPopup(found ? "Staff removed ✅" : "Staff ID not found ❌", found ? "success" : "error");
+      event.target.reset();
+      updateCounts();
+      return true;
+    }
+
+    window.onload = () => {
+      if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark-mode");
+        document.getElementById("darkModeToggle").innerText = "☀️ Light Mode";
+      }
+      updateCounts();
+    }
+  </script>
+</body>
+</html>
